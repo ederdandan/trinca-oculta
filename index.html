@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="mystic">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" id="meta-theme-color" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Trinca Oculta" />
+  <meta name="description" content="Trinca Oculta — Jogo de dedução, memória e ordenação numérica em Duelo 1v1 ou Dupla 2v2." />
+  <title>Trinca Oculta — Dedução em Duelo &amp; Dupla</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- CSS compilado (Tailwind + estilos do jogo). Gerado por: npm run build:css -->
+  <link rel="stylesheet" href="css/app.css" />
+
+  <script src="vendor/peerjs.min.js" defer></script>
+  <script src="vendor/qrcode.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body class="flex flex-col justify-between h-full w-full overflow-hidden">
+
+  <!-- Camada de Confetes -->
+  <div id="confetti-layer" class="pointer-events-none fixed inset-0 z-50 overflow-hidden"></div>
+
+  <!-- Toasts globais (visíveis no lobby e na mesa) -->
+  <div id="toast-container" class="pointer-events-none fixed top-14 left-1/2 z-[70] w-[92vw] max-w-sm"></div>
+
+  <!-- =========================================================================
+       CABEÇALHO GLOBAL
+       ========================================================================= -->
+  <header class="w-full max-w-3xl mx-auto px-3 pt-2 pb-1 flex items-center justify-between gap-1.5 z-30 shrink-0">
+    <div class="flex items-center gap-2 min-w-0">
+      <button type="button" id="btn-back-lobby" class="hidden glass-panel px-2.5 py-2 rounded-xl text-xs font-extrabold active:scale-95 transition">
+        ← Lobby
+      </button>
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-8 h-8 rounded-xl btn-accent flex items-center justify-center shadow shrink-0 pointer-events-none">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <polygon points="12,3 21,19 3,19" />
+            <circle cx="12" cy="14" r="2.2" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="truncate">
+          <h1 class="font-display text-sm sm:text-base font-extrabold leading-none truncate">TRINCA OCULTA</h1>
+          <span id="header-room-wrap" class="hidden text-[11px] opacity-80 font-medium">Sala: <strong id="header-room-code">----</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1 shrink-0">
+      <div class="glass-panel p-1 rounded-xl flex items-center gap-0.5" role="group" aria-label="Temas">
+        <button type="button" data-theme-btn="mystic" class="px-2 py-1.5 rounded-lg text-xs font-bold transition" title="Taverna Mística" aria-label="Tema Taverna Mística">🔮</button>
+        <button type="button" data-theme-btn="wood" class="px-2 py-1.5 rounded-lg text-xs font-bold transition" title="Madeira &amp; Marfim" aria-label="Tema Madeira e Marfim">🪵</button>
+        <button type="button" data-theme-btn="cyber" class="px-2 py-1.5 rounded-lg text-xs font-bold transition" title="Cyberpunk Neon" aria-label="Tema Cyberpunk Neon">⚡</button>
+      </div>
+
+      <button type="button" id="btn-sound" class="glass-panel p-2 rounded-xl text-xs font-bold active:scale-95 transition" title="Ativar/Silenciar Som" aria-label="Ativar ou silenciar som">🔊</button>
+
+      <button type="button" id="btn-header-help" class="glass-panel px-3 py-2 rounded-xl text-xs font-extrabold active:scale-95 transition" title="Como Jogar" aria-label="Como jogar">?</button>
+
+      <button type="button" id="btn-profile" class="glass-panel p-1 rounded-xl active:scale-95 transition" title="Perfil" aria-label="Abrir perfil">
+        <span id="header-avatar" class="block"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       TELA 1: LOBBY
+       ========================================================================= -->
+  <main id="lobby-screen" class="flex-1 w-full max-w-lg mx-auto px-3.5 py-1.5 flex flex-col overflow-y-auto custom-scroll z-10">
+    <div class="glass-panel rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3.5 my-auto">
+      <div class="text-center space-y-1">
+        <span class="inline-block px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest soft-panel" style="color: var(--accent);">
+          Dedução • Memória • Ordenação
+        </span>
+        <h2 class="font-display text-2xl sm:text-3xl font-extrabold">Trinca Oculta</h2>
+        <p id="lobby-greeting" class="text-xs font-bold" style="color: var(--accent);"></p>
+        <p class="text-xs" style="color: var(--text-secondary);">
+          Revele 3 cartas iguais usando apenas a <strong>MENOR</strong> ou <strong>MAIOR</strong> ponta de cada mão ou as cartas da mesa.
+        </p>
+      </div>
+
+      <!-- Tipo de Participantes -->
+      <div class="space-y-1.5">
+        <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--text-secondary);">Com quem você vai jogar?</span>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button type="button" data-squad-btn="bots" class="soft-panel py-2.5 px-2 rounded-xl text-center border-2 transition">
+            <div class="text-[11px] font-extrabold">🤖 Contra Bot</div>
+            <div class="text-[9px]" style="color: var(--text-secondary);">IA Dedutiva</div>
+          </button>
+          <button type="button" data-squad-btn="pass" class="soft-panel py-2.5 px-2 rounded-xl text-center border-2 transition">
+            <div class="text-[11px] font-extrabold">📱 Passar Celular</div>
+            <div class="text-[9px]" style="color: var(--text-secondary);">Mesma tela</div>
+          </button>
+          <button type="button" data-squad-btn="online" class="soft-panel py-2.5 px-2 rounded-xl text-center border-2 transition">
+            <div class="text-[11px] font-extrabold">🌐 Sala Online</div>
+            <div class="text-[9px]" style="color: var(--text-secondary);">Link / Código</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cartão da Sala Online (só no modo online) -->
+      <div id="room-card" class="hidden soft-panel rounded-2xl p-3 space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[10px] uppercase font-bold tracking-wider block" style="color: var(--text-secondary);">Código da Sala</span>
+            <div class="flex items-center gap-2">
+              <span id="lobby-room-code" class="font-mono text-xl font-black tracking-widest" style="color: var(--accent);">----</span>
+              <span id="room-status-pill" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold whitespace-nowrap">● Conectando…</span>
+            </div>
+          </div>
+
+          <div id="host-room-actions" class="flex items-center gap-1.5 shrink-0">
+            <button type="button" id="btn-toggle-qr" class="glass-panel px-2.5 py-2 rounded-xl text-xs font-bold active:scale-95" title="Exibir QR Code">QR</button>
+            <button type="button" id="btn-new-room" class="glass-panel px-2.5 py-2 rounded-xl text-xs font-bold active:scale-95" title="Gerar nova sala">↻</button>
+            <button type="button" id="btn-copy-link" class="btn-accent px-3 py-2 rounded-xl text-xs flex items-center gap-1 shadow">
+              <span>🔗</span>
+              <span id="copy-btn-label">Convidar</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="room-peer-line" class="hidden flex items-center gap-2 text-xs font-bold"></div>
+
+        <div id="qr-box" class="hidden pt-2 border-t flex flex-col items-center gap-1.5" style="border-color: var(--panel-border);">
+          <div id="qr-svg-container" class="bg-white p-2 rounded-xl shadow"></div>
+          <span class="text-[10px] opacity-80 text-center">Escaneie no outro celular para entrar na sala <strong id="qr-code-text">----</strong></span>
+        </div>
+
+        <form id="join-form" class="flex items-center gap-1.5 pt-1.5 border-t" style="border-color: var(--panel-border);">
+          <input id="input-join-room" type="text" maxlength="4" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CÓDIGO (EX: AB12)" aria-label="Código da sala" class="w-full px-3 py-2 rounded-xl glass-panel text-base font-mono uppercase font-bold outline-none" style="color: var(--text-primary);" />
+          <button type="submit" id="btn-join-room" class="glass-panel px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap active:scale-95">Entrar</button>
+        </form>
+        <button type="button" id="btn-leave-room" class="hidden w-full glass-panel px-3 py-2 rounded-xl text-xs font-extrabold active:scale-95">Sair da sala</button>
+      </div>
+
+      <!-- Formato -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider" style="color: var(--text-secondary);">Formato da Partida</span>
+          <span id="config-lock-note" class="hidden text-[10px] font-bold opacity-80">🔒 definido pelo anfitrião</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" data-format-btn="1v1" class="soft-panel p-2.5 rounded-2xl text-left border-2 transition">
+            <div class="text-xs font-extrabold">⚔️ Duelo 1v1</div>
+            <div class="text-[10px] leading-tight mt-0.5" style="color: var(--text-secondary);">2 jogadores, 10 cartas cada</div>
+          </button>
+          <button type="button" data-format-btn="2v2" class="soft-panel p-2.5 rounded-2xl text-left border-2 transition">
+            <div class="text-xs font-extrabold">🤝 Dupla 2v2</div>
+            <div class="text-[10px] leading-tight mt-0.5" style="color: var(--text-secondary);">Sul+Norte vs Oeste+Leste (7 cartas)</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Condição de Vitória -->
+      <div class="space-y-1">
+        <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--text-secondary);">Condição de Vitória</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" data-rule-btn="classic" class="soft-panel p-2.5 rounded-2xl text-left border-2 transition">
+            <div class="text-xs font-extrabold">👑 Clássico</div>
+            <div class="text-[10px] leading-tight mt-0.5" style="color: var(--text-secondary);">3 Trincas OU a Trinca de <strong>7</strong></div>
+          </button>
+          <button type="button" data-rule-btn="spicy" class="soft-panel p-2.5 rounded-2xl text-left border-2 transition">
+            <div class="text-xs font-extrabold">🌶️ Picante</div>
+            <div class="text-[10px] leading-tight mt-0.5" style="color: var(--text-secondary);">2 Trincas Conectadas (ex: 4+11) ou <strong>7</strong></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="btn-lobby-rules" class="soft-panel px-4 py-3.5 rounded-2xl text-xs font-extrabold active:scale-95 transition">📖 Regras</button>
+        <button type="button" id="btn-start-match" class="btn-accent flex-1 py-3.5 rounded-2xl text-sm tracking-wide shadow-lg flex items-center justify-center gap-2">
+          <span id="start-btn-icon">🎴</span>
+          <span id="start-btn-label">Iniciar Partida</span>
+        </button>
+      </div>
+
+      <button type="button" id="btn-install" class="hidden w-full soft-panel py-2.5 rounded-2xl text-xs font-extrabold active:scale-95">📲 Instalar o jogo no aparelho</button>
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       TELA 2: MESA DE JOGO
+       ========================================================================= -->
+  <section id="game-screen" class="hidden flex-1 w-full max-w-3xl mx-auto px-2.5 pb-2.5 flex flex-col justify-between min-h-0 relative">
+
+    <div class="glass-panel rounded-2xl px-3 py-1.5 flex items-center justify-between gap-2 shrink-0">
+      <div id="match-scoreboard" class="flex items-center gap-2 overflow-x-auto text-xs custom-scroll"></div>
+      <span id="rule-badge-hud" class="px-2 py-0.5 rounded-lg soft-panel text-[10px] font-extrabold uppercase shrink-0">Clássico</span>
+    </div>
+
+    <div id="opponents-row" class="w-full max-w-md mx-auto my-1 shrink-0"></div>
+
+    <div class="flex-1 min-h-0 flex flex-col justify-center items-center gap-2 my-0.5">
+      <div class="glass-panel rounded-2xl px-3 py-2 w-full max-w-md flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div id="turn-banner-title" class="text-xs font-extrabold truncate" style="color: var(--accent);">Sua Vez!</div>
+          <div id="turn-banner-sub" class="text-[10px] truncate" style="color: var(--text-secondary);">Revele uma carta da mesa ou uma PONTA</div>
+        </div>
+        <div id="current-turn-slots" class="flex items-center gap-1.5 shrink-0"></div>
+      </div>
+
+      <div id="center-table-grid" class="grid grid-cols-4 gap-2 p-2.5 rounded-2xl soft-panel max-w-md w-full place-items-center"></div>
+    </div>
+
+    <div class="glass-panel rounded-2xl p-2.5 space-y-1.5 shrink-0 max-w-md w-full mx-auto">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span id="local-hand-avatar"></span>
+          <span id="local-hand-owner" class="text-xs font-extrabold truncate">Sua Mão Ordenada</span>
+          <span id="local-hand-count" class="text-[10px] opacity-75 font-bold whitespace-nowrap">(10 cartas)</span>
+        </div>
+
+        <button type="button" id="btn-secret-swap" class="hidden px-2.5 py-1 rounded-xl btn-accent text-[11px] flex items-center gap-1 shadow shrink-0">
+          <span>⇄</span>
+          <span id="secret-swap-label">Troca Secreta (1x)</span>
+        </button>
+      </div>
+
+      <div id="local-hand-container" class="w-full min-h-[78px] flex items-center justify-between gap-1.5"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       TELA DE PRIVACIDADE (PASSAR O CELULAR)
+       ========================================================================= -->
+  <div id="privacy-screen" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-5">
+    <div class="glass-panel rounded-3xl max-w-sm w-full p-6 text-center space-y-4">
+      <div id="privacy-avatar" class="flex justify-center"></div>
+      <div class="space-y-1">
+        <div class="text-[11px] font-extrabold uppercase tracking-widest" style="color: var(--accent);">Passe o Aparelho</div>
+        <h3 id="privacy-next-player" class="font-display text-2xl font-extrabold">Vez do Jogador 2</h3>
+        <p class="text-xs" style="color: var(--text-secondary);">Garanta que ninguém mais esteja olhando antes de revelar a mão.</p>
+      </div>
+      <button type="button" id="btn-confirm-privacy" class="btn-accent w-full py-3.5 rounded-2xl text-sm shadow-lg">👁️ Estou Pronto, Mostrar Mão</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PERFIL LOCAL (LOGIN NO APARELHO)
+       ========================================================================= -->
+  <div id="profile-screen" class="hidden fixed inset-0 z-[60] bg-black/85 backdrop-blur-md overflow-y-auto custom-scroll">
+    <div class="min-h-full flex items-center justify-center p-4">
+      <div class="glass-panel rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <span id="profile-kicker" class="text-[10px] font-extrabold uppercase tracking-wider" style="color: var(--accent);">Bem-vindo!</span>
+            <h3 id="profile-title" class="font-display text-xl font-extrabold">Crie seu perfil</h3>
+            <p id="profile-subtitle" class="text-[11px]" style="color: var(--text-secondary);">Salvo só neste aparelho. Nenhuma senha necessária.</p>
+          </div>
+          <button type="button" id="btn-close-profile" class="hidden soft-panel w-9 h-9 rounded-full font-bold text-sm flex items-center justify-center shrink-0" aria-label="Fechar">✕</button>
+        </div>
+
+        <!-- Lista de perfis salvos -->
+        <div id="profile-list-section" class="hidden space-y-1.5">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--text-secondary);">Quem está jogando?</span>
+          <div id="profile-list" class="grid grid-cols-1 gap-1.5"></div>
+          <button type="button" id="btn-new-profile" class="w-full soft-panel py-2 rounded-xl text-xs font-extrabold active:scale-95">＋ Novo jogador</button>
+        </div>
+
+        <form id="profile-form" class="space-y-3.5" novalidate>
+          <div class="flex flex-col items-center gap-2">
+            <div id="profile-avatar-preview"></div>
+            <div class="flex gap-1.5">
+              <label class="soft-panel px-3 py-2 rounded-xl text-xs font-extrabold cursor-pointer active:scale-95">
+                📷 Câmera
+                <input id="input-photo-camera" type="file" accept="image/*" capture="user" class="hidden" />
+              </label>
+              <label class="soft-panel px-3 py-2 rounded-xl text-xs font-extrabold cursor-pointer active:scale-95">
+                🖼️ Galeria
+                <input id="input-photo-gallery" type="file" accept="image/*" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--text-secondary);">Ou escolha um ícone</span>
+            <div id="profile-icon-grid" class="grid grid-cols-8 gap-1"></div>
+          </div>
+
+          <div class="space-y-1">
+            <label for="input-profile-name" class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--text-secondary);">Seu nome / apelido</label>
+            <input id="input-profile-name" type="text" maxlength="16" autocomplete="nickname" placeholder="Ex: Mestre das Trincas" class="w-full px-3 py-2.5 rounded-xl glass-panel text-base font-bold outline-none" style="color: var(--text-primary);" />
+            <p id="profile-error" class="hidden text-[11px] font-bold text-rose-300"></p>
+          </div>
+
+          <div id="profile-stats" class="hidden soft-panel rounded-2xl p-2.5 grid grid-cols-4 gap-1 text-center"></div>
+
+          <div class="flex gap-2">
+            <button type="button" id="btn-delete-profile" class="hidden soft-panel px-3 py-3 rounded-2xl text-xs font-extrabold text-rose-300">🗑️ Excluir</button>
+            <button type="submit" id="btn-save-profile" class="btn-accent flex-1 py-3 rounded-2xl text-sm shadow-lg">Salvar e Jogar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: TUTORIAL
+       ========================================================================= -->
+  <div id="modal-tutorial" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl max-w-md w-full p-5 sm:p-6 flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider" style="color: var(--accent);">Guia Rápido</span>
+          <h3 class="font-display text-xl font-extrabold">Como Jogar Trinca Oculta</h3>
+        </div>
+        <button type="button" id="btn-close-tutorial" class="soft-panel w-9 h-9 rounded-full font-bold text-sm flex items-center justify-center" aria-label="Fechar">✕</button>
+      </div>
+
+      <div id="tutorial-step-content" class="soft-panel rounded-2xl p-4 space-y-2.5 min-h-[190px] flex flex-col justify-between"></div>
+
+      <div class="flex items-center justify-between gap-2">
+        <button type="button" id="btn-tut-prev" class="soft-panel px-4 py-2.5 rounded-xl text-xs font-extrabold">← Anterior</button>
+        <div id="tut-dots" class="flex gap-1.5"></div>
+        <button type="button" id="btn-tut-next" class="btn-accent px-4 py-2.5 rounded-xl text-xs">Próximo →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: FIM DE PARTIDA
+       ========================================================================= -->
+  <div id="modal-gameover" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+      <div id="gameover-icon" class="text-5xl">🏆</div>
+      <div class="space-y-1">
+        <div id="gameover-kicker" class="text-[11px] font-extrabold uppercase tracking-widest" style="color: var(--accent);">Vitória!</div>
+        <h3 id="gameover-winner-title" class="font-display text-2xl font-extrabold">Você Venceu!</h3>
+        <p id="gameover-reason" class="text-xs" style="color: var(--text-secondary);"></p>
+      </div>
+
+      <div id="gameover-trios-summary" class="soft-panel rounded-2xl p-3 text-xs space-y-1.5"></div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="btn-rematch" class="btn-accent flex-1 py-3 rounded-2xl text-sm shadow">Jogar Novamente</button>
+        <button type="button" id="btn-gameover-lobby" class="soft-panel px-4 py-3 rounded-2xl text-sm font-extrabold">Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: CONFIRMAÇÃO
+       ========================================================================= -->
+  <div id="modal-confirm" class="hidden fixed inset-0 z-[80] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl max-w-xs w-full p-5 text-center space-y-3 shadow-2xl">
+      <h3 id="confirm-title" class="font-display text-lg font-extrabold">Tem certeza?</h3>
+      <p id="confirm-text" class="text-xs" style="color: var(--text-secondary);"></p>
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="btn-confirm-cancel" class="soft-panel flex-1 py-2.5 rounded-2xl text-xs font-extrabold">Cancelar</button>
+        <button type="button" id="btn-confirm-ok" class="btn-accent flex-1 py-2.5 rounded-2xl text-xs">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

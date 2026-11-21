@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================================
+   3 TEMAS DINÂMICOS: TAVERNA MÍSTICA, MADEIRA & MARFIM, CYBERPUNK NEON
+   ========================================================================= */
+:root, [data-theme="mystic"] {
+  --bg-app: radial-gradient(circle at 50% 20%, #172554 0%, #090d1f 68%, #040610 100%);
+  --panel-bg: rgba(15, 23, 52, 0.92);
+  --panel-soft: rgba(30, 41, 82, 0.78);
+  --panel-border: rgba(250, 204, 21, 0.34);
+  --text-primary: #fefce8;
+  --text-secondary: #cbd5e1;
+  --accent: #facc15;
+  --accent-text: #1e1b4b;
+  --accent-2: #38bdf8;
+  --card-back-bg: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%);
+  --card-back-border: #eab308;
+  --card-face-bg: linear-gradient(165deg, #1e293b 0%, #0f172a 100%);
+  --card-face-text: #fde047;
+  --card-face-border: rgba(250, 204, 21, 0.72);
+  --edge-glow: rgba(250, 204, 21, 0.75);
+}
+
+[data-theme="wood"] {
+  --bg-app: radial-gradient(circle at 50% 26%, #365314 0%, #1a2e05 72%, #0f1c03 100%);
+  --panel-bg: rgba(45, 27, 14, 0.94);
+  --panel-soft: rgba(69, 41, 21, 0.84);
+  --panel-border: rgba(234, 179, 8, 0.4);
+  --text-primary: #fef9c3;
+  --text-secondary: #e7e5e4;
+  --accent: #eab308;
+  --accent-text: #291506;
+  --accent-2: #84cc16;
+  --card-back-bg: linear-gradient(145deg, #5c3317 0%, #3b1e0a 100%);
+  --card-back-border: #d97706;
+  --card-face-bg: linear-gradient(165deg, #fffbeb 0%, #fef3c7 100%);
+  --card-face-text: #451a03;
+  --card-face-border: #92400e;
+  --edge-glow: rgba(250, 204, 21, 0.85);
+}
+
+[data-theme="cyber"] {
+  --bg-app: radial-gradient(circle at 50% 20%, #131b3a 0%, #060917 70%, #02030a 100%);
+  --panel-bg: rgba(10, 15, 34, 0.94);
+  --panel-soft: rgba(22, 33, 68, 0.84);
+  --panel-border: rgba(34, 211, 238, 0.42);
+  --text-primary: #ecfeff;
+  --text-secondary: #94a3b8;
+  --accent: #22d3ee;
+  --accent-text: #04151f;
+  --accent-2: #f43f5e;
+  --card-back-bg: linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%);
+  --card-back-border: #22d3ee;
+  --card-face-bg: linear-gradient(165deg, #090d1e 0%, #16213e 100%);
+  --card-face-text: #22d3ee;
+  --card-face-border: #f43f5e;
+  --edge-glow: rgba(34, 211, 238, 0.85);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+input {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.font-display {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Toque responsivo sem atraso de 300ms em dispositivos móveis */
+button, input, label, [role="button"] {
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+button:focus-visible, input:focus-visible, label:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.glass-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.soft-panel {
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-border);
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 800;
+  transition: transform 0.1s ease, filter 0.12s ease, opacity 0.12s ease;
+}
+
+.btn-accent:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.btn-accent:disabled {
+  opacity: 0.55;
+}
+
+.is-locked {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.game-card-back {
+  background: var(--card-back-bg);
+  border: 2px solid var(--card-back-border);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.16s ease;
+}
+
+.game-card-face {
+  background: var(--card-face-bg);
+  color: var(--card-face-text);
+  border: 2px solid var(--card-face-border);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+  animation: flipIn 0.2s ease-out;
+}
+
+@keyframes flipIn {
+  0% { transform: scale(0.88); opacity: 0.45; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes edgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--edge-glow); }
+  50% { box-shadow: 0 0 0 4px var(--edge-glow); }
+}
+
+.playable-edge {
+  animation: edgePulse 1.75s infinite;
+  cursor: pointer;
+}
+
+.playable-edge:active {
+  transform: scale(0.94);
+}
+
+@keyframes toastPop {
+  0% { opacity: 0; transform: translateY(-8px) scale(0.94); }
+  12% { opacity: 1; transform: translateY(0) scale(1.02); }
+  88% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-6px) scale(0.96); }
+}
+
+.toast-pill {
+  animation: toastPop 2.4s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+}
+
+.confetti-piece {
+  position: fixed;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 60;
+  animation: confettiFall linear forwards;
+}
+
+.avatar-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: var(--panel-border);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playable-edge, .game-card-face, .confetti-piece {
+    animation: none !important;
+  }
+}
