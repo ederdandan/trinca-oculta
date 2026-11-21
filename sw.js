@@ -3,7 +3,7 @@
    - Navegação: rede primeiro (pega atualizações), cache como reserva
    - Arquivos estáticos e fontes: cache primeiro + atualização em segundo plano
    Ao publicar uma nova versão, incremente CACHE_VERSION. */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `trinca-oculta-${CACHE_VERSION}`;
 
 const APP_SHELL = [
