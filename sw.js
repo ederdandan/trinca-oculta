@@ -3,7 +3,7 @@
    - Navegação: rede primeiro (pega atualizações), cache como reserva
    - Arquivos estáticos e fontes: cache primeiro + atualização em segundo plano
    Ao publicar uma nova versão, incremente CACHE_VERSION. */
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `trinca-oculta-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -39,6 +39,8 @@ function isFontRequest(url) {
 }
 
 self.addEventListener('fetch', (event) => {
+  // Métricas (GoatCounter): sempre pela rede, nunca no cache.
+  if (/goatcounter\.com|gc\.zgo\.at/.test(event.request.url)) return;
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
